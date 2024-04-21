@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class ProjectServiceImpl extends AbstractMapService<ProjectDTO,String> implements ProjectService {
+public class ProjectServiceImpl extends AbstractMapService<ProjectDTO, String> implements ProjectService {
 
 
     private final TaskService taskService;
@@ -24,10 +24,10 @@ public class ProjectServiceImpl extends AbstractMapService<ProjectDTO,String> im
     @Override
     public ProjectDTO save(ProjectDTO project) {
 
-        if(project.getProjectStatus()==null)
+        if (project.getProjectStatus() == null)
             project.setProjectStatus(Status.OPEN);
 
-        return super.save(project.getProjectCode(),project);
+        return super.save(project.getProjectCode(), project);
     }
 
     @Override
@@ -42,10 +42,10 @@ public class ProjectServiceImpl extends AbstractMapService<ProjectDTO,String> im
 
     @Override
     public void update(ProjectDTO object) {
-        if (object.getProjectStatus()==null){
+        if (object.getProjectStatus() == null) {
             object.setProjectStatus(findById(object.getProjectCode()).getProjectStatus());
         }
-        super.update(object.getProjectCode(),object);
+        super.update(object.getProjectCode(), object);
     }
 
     @Override
@@ -60,18 +60,36 @@ public class ProjectServiceImpl extends AbstractMapService<ProjectDTO,String> im
 
     @Override
     public List<ProjectDTO> getCountedListOfProjectDTO(UserDTO manager) {
-        List<ProjectDTO> projectList=findAll().stream().filter(project->project.getAssignedManager().equals(manager))
-                .map(project->{
-                    List<TaskDTO> taskList=taskService.findTaskByManager(manager);
+//        List<ProjectDTO> projectList = findAll().stream().filter(project -> project.getAssignedManager().equals(manager))
+//                .map(project -> {
+//                    List<TaskDTO> taskList = taskService.findTaskByManager(manager);
+//
+//                    int completedTaskCount = (int) taskList.stream().filter(p -> p.getProject().equals(project) && p.getTaskStatus() == Status.COMPLETE).count();
+//                    int uncompletedTaskCount = (int) taskList.stream().filter(p -> p.getProject().equals(project) && p.getTaskStatus() != Status.COMPLETE).count();
+//                    project.setCompleteTaskCounts(completedTaskCount);
+//                    project.setUnfinishedTaskCounts(uncompletedTaskCount);
+//                    return project;
+//                })
+//
+//                .collect(Collectors.toList());
+        List<ProjectDTO> projectList =
+                findAll()
+                        .stream()
+                        .filter(project -> project.getAssignedManager().equals(manager))  //John
+                        .map(project ->{
 
-                        int completedTaskCount= (int) taskList.stream().filter(p->p.getProject().equals(project)&&p.getTaskStatus()==Status.COMPLETE).count();
-                        int uncompletedTaskCount= (int) taskList.stream().filter(p->p.getProject().equals(project)&&p.getTaskStatus()!=Status.COMPLETE).count();
-                        project.setCompleteTaskCounts(completedTaskCount);
-                        project.setUnfinishedTaskCounts(uncompletedTaskCount);
-                        return project;
-                })
+                            List<TaskDTO> taskList = taskService.findTaskByManager(manager);
 
-                .collect(Collectors.toList());
+                            int completeTaskCounts = (int) taskList.stream().filter(t -> t.getProject().equals(project) && t.getTaskStatus() == Status.COMPLETE).count();
+                            int unfinishedTaskCounts = (int) taskList.stream().filter(t -> t.getProject().equals(project) && t.getTaskStatus() != Status.COMPLETE).count();
+
+                            project.setCompleteTaskCounts(completeTaskCounts);
+                            project.setUnfinishedTaskCounts(unfinishedTaskCounts);
+
+                            return project;
+
+                        })
+                        .collect(Collectors.toList());
         return projectList;
     }
 }
